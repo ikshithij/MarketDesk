@@ -4,7 +4,7 @@ export async function api<T=any>(path:string, method='GET', body?:unknown):Promi
   if(!response.ok) throw new Error(typeof data.detail==='string'?data.detail:'Please check the entered values.');
   return data;
 }
-export const money=(n:number|null|undefined,currency='USD')=>n==null?'—':new Intl.NumberFormat('en-GB',{style:'currency',currency,maximumFractionDigits:2,notation:Math.abs(n)>=1e6?'compact':'standard'}).format(n);
+export const money=(n:number|null|undefined,currency='USD')=>n==null?'—':currency==='GBX'?new Intl.NumberFormat('en-GB',{maximumFractionDigits:2}).format(n)+'p':new Intl.NumberFormat('en-GB',{style:'currency',currency,maximumFractionDigits:2,notation:Math.abs(n)>=1e6?'compact':'standard'}).format(n);
 export const percent=(n:number|null|undefined)=>n==null?'—':`${n>0?'+':''}${n.toFixed(1)}%`;
 export const date=(value:string|undefined)=>value?new Date(value).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Not available';
 export type Company={symbol:string;name:string;cik:string;sector:string;metrics:Record<string,number|string|null>;quote:any;fetched_at:string|null;reasons?:string[]};

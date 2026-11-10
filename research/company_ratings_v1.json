@@ -1,0 +1,28 @@
+{
+  "id": "AI-COMPANY-001",
+  "version": "1.0.0",
+  "status": "exploratory_ai_opinion_not_validated_strategy",
+  "authority": "User request 10 November 2026: clear numbers or ratings for each thing and a large stock comparison table identifying the most worthwhile companies.",
+  "standard_version": "1.0.0",
+  "horizon": "3–5 year company attractiveness at the captured price",
+  "scale": {"0": "Severely unattractive", "1": "Weak", "2": "Below average", "3": "Mixed / reasonable", "4": "Attractive", "5": "Exceptional", "null": "Insufficient evidence; never replace with zero"},
+  "dimensions": [
+    {"id":"business","label":"Business quality","weight":20,"assess":"Durability of demand, pricing power, competitive moat and customer concentration. 1=fragile economics; 3=credible but contested; 5=durable advantages supported by evidence."},
+    {"id":"financials","label":"Financial strength","weight":25,"assess":"Cash generation, debt service, earnings quality, dilution and capital intensity. 1=financial stress or weak cash conversion; 3=adequate with tradeoffs; 5=robust balance sheet and durable cash conversion."},
+    {"id":"growth","label":"Growth outlook","weight":15,"assess":"Evidence-backed profitable growth, not total-addressable-market claims alone. 1=structural contraction; 3=plausible but uncertain; 5=strong demonstrated profitable growth with durable drivers."},
+    {"id":"valuation","label":"Value at this price","weight":20,"assess":"Captured price versus dated earnings/cash flows and explicit conservative assumptions. 1=price needs heroic execution; 3=roughly reasonable; 5=strong apparent margin of safety with stated risks. Null without a usable price and current fundamental inputs. Do not invent intrinsic value or peer multiples."},
+    {"id":"long_term","label":"Long-term outlook","weight":20,"assess":"Resilience and per-share economics over 3–5 years, including structural threats. 1=likely erosion of economics; 3=balanced scenarios; 5=multiple evidenced durable routes to improved per-share economics."},
+    {"id":"short_term","label":"Near-term setup","weight":0,"assess":"Next 20 regular sessions: balance of dated catalysts, event uncertainty and entry risks. Higher means a more favourable qualitative setup, not a price forecast. Null if no evidenced catalyst or timing case. Never a strategy-qualified signal; excluded from overall."},
+    {"id":"leadership_news","label":"Leadership","weight":0,"assess":"Capital allocation, execution evidence, governance and dated leadership news. Higher=stronger evidenced stewardship. Excluded from overall to limit double counting."},
+    {"id":"risks","label":"Risk resilience","weight":0,"assess":"Ability to withstand concrete operational, regulatory, concentration and financial risks. Higher=more resilient, never higher risk. Excluded from overall to limit double counting."},
+    {"id":"watch_next","label":"Evidence coverage","weight":0,"assess":"Current primary financial disclosures and counter-evidence available for this assessment. 1=mostly snippets or stale sources; 3=current primary results plus gaps; 5=multiple current primary sources, reconciled financials and independent counter-evidence. This is not forecast confidence and is excluded from overall."}
+  ],
+  "overall": "sum(integer dimension score * weight) / 100, displayed out of 5 to one decimal; all five weighted dimensions required",
+  "rank_gate": "current rubric; assessment age <=7 days; current non-stale positive quote <=7 days old; at least 3 distinct HTTPS source documents including at least 1 primary marked read; evidence coverage >=3; all weighted scores supported by citations; banks, insurers and property investment companies excluded",
+  "ranking": "descending unrounded overall; ties use ticker; only among covered workspace companies; cross-sector subjective comparisons are not sector-neutral factor ranks",
+  "thresholds": {"strong_candidate_min":4,"worth_a_closer_look_min":3.5,"mixed_min":2.5},
+  "missing_or_stale": "Unranked; retain original assessment and its date, never zero-fill or call it current",
+  "not": ["LT-QV-001", "a cross-strategy combination", "a return probability", "an empirically validated alpha model", "personalised allocation", "verified Trading 212 listing availability"],
+  "sources": ["https://www.investor.gov/research-you-invest", "https://www.investor.gov/introduction-investing/investing-basics/investment-products/stocks"],
+  "source_scope": "Sources support due diligence and distinguishing growth/value/risk, not these unvalidated weights or ratings. Weights and anchors are product defaults frozen for this separate rubric."
+}

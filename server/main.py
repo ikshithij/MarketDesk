@@ -6,12 +6,13 @@ from pathlib import Path
 from typing import Literal
 import httpx
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
 from .store import init, db, cached, cache, settings, now
 from .finance import portfolio, backtest
 from . import company_analysis as analysis
+from . import company_ratings as ratings
 from .providers import sec_company, alpha, fred, fetch, market_data, ProviderError
 
 # Deliberately small .env loader: no interpolation or shell execution.
@@ -80,6 +81,7 @@ def scheduler():
 async def lifespan(app):
     init()
     analysis.initialize()
+    ratings.initialize()
     with db() as c: c.execute("UPDATE jobs SET status='failed',detail=? WHERE status='running'",(json.dumps({'errors':['Application restarted during refresh.']}),))
     thread=threading.Thread(target=scheduler,daemon=True);thread.start()
     yield
@@ -410,5 +412,27 @@ def export_company_analysis(rid:str):
         result=analysis.get_report(rid)
         return JSONResponse(result,headers={'Content-Disposition':f'attachment; filename="marketdesk-{result["symbol"]}-{rid[:8]}.json"'})
     except analysis.AnalysisError as exc: raise HTTPException(404,str(exc)) from exc
+
+class RatingRequest(Input):
+    symbols:list[str]|None=Field(default=None,max_length=200)
+    force:bool=False
+
+@app.get('/api/comparison')
+def comparison_table():
+    return ratings.comparison()
+
+@app.post('/api/ratings')
+def research_ratings(body:RatingRequest):
+    try: return ratings.start(body.symbols,body.force)
+    except analysis.AnalysisError as exc: raise HTTPException(422,str(exc)) from exc
+
+@app.get('/api/ratings/jobs/{jid}')
+def rating_job(jid:str):
+    try: return ratings.get_job(jid)
+    except analysis.AnalysisError as exc: raise HTTPException(404,str(exc)) from exc
+
+@app.get('/api/comparison/export')
+def comparison_export():
+    return Response(ratings.csv_export(),media_type='text/csv',headers={'Content-Disposition':'attachment; filename="marketdesk-company-comparison.csv"'})
 
 if Path('dist').exists(): app.mount('/',StaticFiles(directory='dist',html=True),name='frontend')

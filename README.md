@@ -19,11 +19,12 @@ For development, run `.venv/bin/python -m uvicorn server.main:app --host 127.0.0
 ## Use it
 
 - **Today:** type “Qualcomm”, another company name or a ticker, then press **Analyse company**. Choose a listing if there are multiple matches. An optional question can focus the research.
-- **Companies:** reopen saved analyses. Each report contains business, financials, growth, valuation, long-term view, short-term timing, leadership/news, risks and monitoring questions. Findings distinguish reported information, calculations and AI interpretation, with links and evidence gaps. Separate tabs show price context and source details.
+- **Companies:** compare every workspace company in a sortable ratings table, then reopen saved analyses. The new AI opinion ratings are out of five, with cited reasoning for every component, a server-calculated long-term total, coverage counts, price snapshots and CSV export. Today highlights the top researched candidates. [Read the fixed rating rubric](docs/COMPANY_RATINGS.md). “All” covers the current workspace, initially 20 US equities, not every listed stock.
+- **Detailed company reports:** reopen saved analyses. Each report contains business, financials, growth, valuation, long-term view, short-term timing, leadership/news, risks and monitoring questions. Findings distinguish reported information, calculations and AI interpretation, with links and evidence gaps. Separate tabs show price context and source details.
 - **Refresh research** creates a new report, preserving the original. Asking a follow-up also creates a separate sourced report. A matching completed report is reused for 24 hours unless explicitly refreshed. Runs remain available if you leave the page.
 - **Quant Lab:** retain the educational long/cash moving-average experiment with explicit costs and assumptions. This is separate from registered strategy TR-001 and does not establish predictive performance.
 
-The interface is research, not broker execution. Trading 212 listing eligibility is not verified. UK regular-hours, long-only and no-leverage constraints are included in the AI research prompt. There is no automated morning report or validated buy/sell ranking yet.
+The interface is research, not broker execution. Trading 212 listing eligibility is not verified. UK regular-hours, long-only and no-leverage constraints are included in the AI research prompt. The comparison ranks exploratory AI opinions, not validated buy/sell signals. There is no automated morning report.
 
 ## Data and AI
 
@@ -45,6 +46,7 @@ Optional environment settings are documented in `.env.example`. No new key is ne
 npm run build
 .venv/bin/python -m unittest discover -s tests -q
 python3 scripts/check_research_standard.py
+python3 scripts/check_company_ratings.py
 ```
 
 Read the [research standard](docs/RESEARCH_STANDARD.md), [methods paper](docs/papers/MarketDesk_Research_Methods_v1.0.docx), and [company researcher implementation](docs/COMPANY_RESEARCH.md). The versioned standard and six strategy definitions remain unchanged. Registered strategies, calibrated forecast probabilities and automatic trading are not implemented by this update.

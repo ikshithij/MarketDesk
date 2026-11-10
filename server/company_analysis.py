@@ -174,11 +174,11 @@ def codex_command(binary,schema_path,cwd):
     return command+['-']
 
 
-def run_codex(prompt,report_id,progress):
+def run_codex(prompt,report_id,progress,schema_override=None,validator=None):
     binary=codex_binary()
     if not binary:raise AnalysisError('Codex is unavailable. Sign in to the Codex CLI with your existing account.')
     with tempfile.TemporaryDirectory(prefix='marketdesk-research-') as temp:
-        folder=Path(temp);schema=folder/'report-schema.json';schema.write_text(json.dumps(report_schema()))
+        folder=Path(temp);schema=folder/'report-schema.json';schema.write_text(json.dumps(schema_override or report_schema()))
         # Only the login environment is retained. No app secrets, notes or portfolio state enter the AI process.
         allowed=['HOME','PATH','TMPDIR','USER','LOGNAME','LANG','LC_ALL','CODEX_HOME','SSL_CERT_FILE','CODEX_CA_CERTIFICATE','HTTPS_PROXY','HTTP_PROXY','NO_PROXY']
         env={k:os.environ[k] for k in allowed if k in os.environ}
@@ -210,7 +210,7 @@ def run_codex(prompt,report_id,progress):
             if event.get('model'):model=event['model']
         if not final:raise AnalysisError('AI completed without a structured report. Please retry.')
         if not web_calls:raise AnalysisError('No online web research was recorded for this run. No unsourced report was published.')
-        try:result=validate_report(json.loads(final))
+        try:result=(validator or validate_report)(json.loads(final))
         except (ValueError,TypeError,KeyError) as exc:raise AnalysisError('AI returned an unreadable report. Please retry.') from exc
         return result,{'provider':'Codex with existing sign-in','model':model,'usage':usage,'web_searches':web_calls}
 

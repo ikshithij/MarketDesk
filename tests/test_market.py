@@ -7,6 +7,11 @@ def payload():
     return {'chart':{'result':[{'meta':{'symbol':'QCOM','currency':'USD','regularMarketPrice':110,'regularMarketTime':1735909200,'exchangeTimezoneName':'America/New_York','chartPreviousClose':40},'timestamp':[1735650000,1735736400,1735822800], 'indicators':{'quote':[{'open':[99,101,None],'high':[101,106,None],'low':[98,100,None],'close':[100,105,None],'volume':[20,30,None]}],'adjclose':[{'adjclose':[99,104,None]}]}}]}}
 
 class Market(unittest.TestCase):
+    def test_london_pence_remain_distinct_from_pounds(self):
+        raw=payload();raw['chart']['result'][0]['meta']['currency']='GBp'
+        data=providers.normalize_yahoo(raw,'QCOM')
+        self.assertEqual(data['quote']['currency'],'GBX')
+        self.assertEqual(data['quote']['price'],110)
     def test_uses_prior_session_not_year_start_for_day_change(self):
         p=providers.normalize_yahoo(payload(),'QCOM')
         self.assertAlmostEqual(p['quote']['change_pct'],(110/105-1)*100)
