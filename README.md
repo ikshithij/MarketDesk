@@ -1,75 +1,52 @@
 # MarketDesk
 
-**The personal financial intelligence terminal.** A local-first research workspace for macOS, built with React, TypeScript, FastAPI and SQLite.
-
-This is the first working release of the [product brief](docs/PRODUCT_BRIEF.md), not a claim that every capability in that brief is finished. Financial data is never fabricated to fill the interface. Company prices and charts load automatically from Yahoo Finance without keys. Official financial statements require SEC contact configuration; other optional providers require their own credentials.
+A simple, local company research workspace: write a company's name and receive a detailed online AI analysis with linked evidence. It uses your existing Codex sign-in. Financial data needs no new accounts, API key or SEC contact setup.
 
 ## Run on your Mac
 
-Requirements: macOS, Python 3.12+, Node.js 22+ and npm. Install once:
+Requirements: macOS, Python 3.12+, Node.js 22+, npm, and the [Codex CLI](https://developers.openai.com/codex/cli/) signed in with your existing account.
 
 ```sh
 ./setup.command
-```
-
-Then double-click **start.command** in Finder, or run:
-
-```sh
+codex login status
 ./start.command
 ```
 
-MarketDesk opens at **http://127.0.0.1:8000**. The startup window keeps the local server running; Control-C stops it. No cloud account, Docker, Redis or brokerage connection is needed. For development, start the API with `.venv/bin/python -m uvicorn server.main:app --host 127.0.0.1 --port 8000` and run `npm run dev` in another terminal.
+Or double-click `start.command`. Open <http://127.0.0.1:8000>. If Codex needs sign-in, run `codex login` yourself and retry. The app checks existing sign-in; it never copies credentials. Research uses your account's AI usage allowance and may encounter its limits.
 
-## Make it useful
+For development, run `.venv/bin/python -m uvicorn server.main:app --host 127.0.0.1 --port 8000` and `npm run dev` in separate terminals.
 
-1. Search a company or select one from the briefing. The latest available quote and charts load automatically without keys.
-2. Optional: open **Settings & data**, add your contact email for SEC fair access, and save. **Financials → Load official financials** retrieves official financials and filing metadata in the background.
-3. Star companies for your watchlist. Filter reported financials in **Discover**, compare companies and save useful screens.
-4. Add transactions to **Portfolio** and record your investment thesis in **Research**.
-5. Optional: copy `.env.example` to `.env`, add provider keys and restart. Prices, macro data and AI use separate provider entitlements. A ChatGPT subscription is not API access.
+## Use it
 
-**No credentials?** Latest quotes, one-year daily charts, latest-session five-minute charts, notes, manual transactions, watchlists, saved screens, local search and exports work. Official statement observations remain unavailable until SEC access is configured.
+- **Today:** type “Qualcomm”, another company name or a ticker, then press **Analyse company**. Choose a listing if there are multiple matches. An optional question can focus the research.
+- **Companies:** reopen saved analyses. Each report contains business, financials, growth, valuation, long-term view, short-term timing, leadership/news, risks and monitoring questions. Findings distinguish reported information, calculations and AI interpretation, with links and evidence gaps. Separate tabs show price context and source details.
+- **Refresh research** creates a new report, preserving the original. Asking a follow-up also creates a separate sourced report. A matching completed report is reused for 24 hours unless explicitly refreshed. Runs remain available if you leave the page.
+- **Quant Lab:** retain the educational long/cash moving-average experiment with explicit costs and assumptions. This is separate from registered strategy TR-001 and does not establish predictive performance.
 
-## What works
+The interface is research, not broker execution. Trading 212 listing eligibility is not verified. UK regular-hours, long-only and no-leverage constraints are included in the AI research prompt. There is no automated morning report or validated buy/sell ranking yet.
 
-- Responsive dark research workspace with universal search and keyboard focus shortcut (⌘/Ctrl K).
-- Search by ticker/name, deterministic natural-language intent routing and visible editable filter translations. Supported screening conditions: sector, minimum annual revenue growth, minimum net margin and positive free cash flow. Unsupported conditions are explicitly not applied.
-- 20 identity-only starter companies; SEC directory lookup can add other US-listed issuers on demand when SEC access is configured. Sector classification for new companies remains unclassified.
-- SEC annual and standalone quarterly XBRL financials, provenance, latest restatements, growth, margins and FCF. Filing links go to SEC originals.
-- Research briefing, watchlists, growth radar, saved screens and company comparison.
-- Automatic Yahoo Finance public quotes with original timestamps and delay labels, one-year daily history, latest-session five-minute bars, line/candlestick charts and 60-second polling while a company is viewed. This is an unofficial public feed for personal research, not a guaranteed real-time exchange service. The Alpha Vantage adapter remains available in source for future provider selection.
-- Optional FRED observations for Treasury yields, policy rates, inflation and unemployment.
-- Manual USD/GBP transactions with fees, weighted average cost, realised/unrealised P&L and explicitly dated user-supplied spot FX. Missing prices/FX prevent misleading partial totals.
-- Reproducible long/cash SMA backtest with prior-close signals, next adjusted-open execution, costs, slippage, equity curve, buy-and-hold comparison and trade history.
-- Optional OpenAI research using only cached structured financial evidence. Usage tokens are recorded. Model configurable through `.env`. Full filing contents and live news are not sent or claimed to have been read.
-- SQLite FTS research notebook, workspace JSON export, cached observations and persistent background job status.
-- Optional six-hour watchlist SEC refresh while the app is running. Market-price refreshes are explicit to conserve provider quotas.
+## Data and AI
 
-## Data and privacy
+Company-name discovery and latest available price history use public Yahoo Finance endpoints. This is an unofficial feed with provider timestamps and delay labels, not guaranteed real-time exchange data. Research uses Codex live web tools to find original company disclosures and dated news. Structured SEC facts are optional context, never a prerequisite. Blocked documents and search-only sources should be identified in the report; source-access labels are AI-reported, not independent document verification.
 
-Personal data and provider caches live in `.marketdesk/marketdesk.db` (gitignored). Copy that file while the app is stopped for a complete backup, or use **Settings → Export personal workspace** for notes, transactions, watchlists, screens and preferences. JSON export does not include provider caches. There is no import UI yet.
+Codex runs non-interactively in a temporary directory with read-only sandboxing, live web enabled, and shell tools, apps, plugins, computer use and multi-agent execution disabled. It receives company identity, public market context, the canonical research policy and the question you enter. No portfolio or notebook data is included. Do not put private information into research questions. Your AI allowance is used only when starting a new research run. One worker and a maximum of three pending runs bound concurrent usage; runs time out after ten minutes.
 
-Secrets stay in `.env` or the server environment and are never returned to the browser. SEC receives your configured contact identity; Yahoo Finance receives the viewed ticker and refresh requests; FRED receives its relevant requests; OpenAI receives a company question and cached public financial context only when you press the AI research button. Personal notes and portfolio data are not included in the AI payload. Fonts use the system stack: no external font request or analytics is required.
+Reports require nine sections, at least three source references, safe HTTPS source URLs and resolvable citations for reported/derived findings. A run with no recorded web-tool calls is rejected. These checks validate structure and attribution, not factual truth. AI can misread evidence or calculate incorrectly. Numerical forecast confidence remains unvalidated and must not be invented.
 
-Bind only to loopback. Host/origin checks reject unrelated websites and DNS rebinding attempts. This is a single-user local app with no remote authentication; do not expose it through a public tunnel. No brokerage execution or generated-code execution exists.
+Personal data, provider caches and saved reports live in `.marketdesk/marketdesk.db` (gitignored). Copy the database while the app is stopped for a full backup. Each report can be exported as JSON. New research runs save the exact prompt and policy/context hashes for audit; full source-document snapshots are not archived, so reports remain exploratory rather than point-in-time backtest evidence. Interrupted research is marked failed at restart; previous reports stay available.
 
-## Verification
+Bind only to loopback. Host/origin checks reject unrelated websites. This is a single-user local app; there is no remote authentication. Existing notebook, portfolio, watchlist and optional provider endpoints remain in the backend, but are outside the simplified interface.
+
+Optional environment settings are documented in `.env.example`. No new key is needed for the main workflow. The older API-key research endpoint is retained for compatibility, separate from the new online company researcher.
+
+## Verification and continuity
 
 ```sh
 npm run build
-.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python -m unittest discover -s tests -q
+python3 scripts/check_research_standard.py
 ```
 
-Tests cover reporting durations, restatements, missing values, growth calculations, cost basis/fees, missing FX, overselling, causality of backtest execution, cost impact, API validation, notebook FTS, watchlists, provider failures and local access boundaries. Tests use isolated temporary databases and test-only synthetic fixtures; fixtures are never served by the application.
+Read the [research standard](docs/RESEARCH_STANDARD.md), [methods paper](docs/papers/MarketDesk_Research_Methods_v1.0.docx), and [company researcher implementation](docs/COMPANY_RESEARCH.md). The versioned standard and six strategy definitions remain unchanged. Registered strategies, calibrated forecast probabilities and automatic trading are not implemented by this update.
 
-Yahoo QCOM market-data retrieval has been verified live without credentials. SEC, FRED and AI still require configuration and have not been end-to-end verified with the user's credentials. See [verification](docs/VERIFICATION.md).
-
-## Persistent research methodology
-
-Read the [research standard](docs/RESEARCH_STANDARD.md) and the [version 1 paper](docs/papers/MarketDesk_Research_Methods_v1.0.docx). Future research and implementation follow the versioned policy and strategy registry in `research/`. Run `python3 scripts/check_research_standard.py` to check continuity. The registered strategy protocols remain planned and unvalidated; they are not the current educational SMA backtest.
-
-## Engineering decisions and remaining work
-
-Read [architecture](docs/ARCHITECTURE.md), [research and dependency decisions](docs/RESEARCH.md), [provider matrix](docs/DATA_PROVIDERS.md), and [delivery status](docs/DELIVERY_STATUS.md).
-
-The current Quant Lab is a single-security educational simulation. It is not a survivorship-corrected market-wide strategy engine or evidence of out-of-sample performance. Portfolio P&L is not tax accounting; no corporate-action ledger or historical FX accounting is implemented. Advanced features from the brief are tracked explicitly rather than represented with invented results.
+See [product brief](docs/PRODUCT_BRIEF.md) and [architecture](docs/ARCHITECTURE.md) for earlier system scope. Earlier delivery documents describe the previous multi-panel interface; the company researcher document records this release's actual behavior.

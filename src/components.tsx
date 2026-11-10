@@ -1,0 +1,4 @@
+import {ArrowRight,RefreshCw} from 'lucide-react';
+export function Section({title,label,action,onAction}:{title:string;label?:string;action?:string;onAction?:()=>void}){return <div className="section-heading"><div>{label&&<div className="eyebrow">{label}</div>}<h2>{title}</h2></div>{action&&<button className="text-link" onClick={onAction}>{action}<ArrowRight size={14}/></button>}</div>}
+export function Heading({eyebrow,title,text,action,onAction}:{eyebrow:string;title:string;text:string;action?:string;onAction?:()=>void}){return <div className="page-heading"><div><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{text}</p></div>{action&&<button className="button" onClick={onAction}><RefreshCw size={15}/>{action}</button>}</div>}
+export function Logo({symbol}:{symbol:string}){return <span className={'company-logo logo-'+symbol.charCodeAt(0)%5}>{symbol.slice(0,2)}</span>}

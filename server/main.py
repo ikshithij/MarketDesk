@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
 from .store import init, db, cached, cache, settings, now
 from .finance import portfolio, backtest
+from . import company_analysis as analysis
 from .providers import sec_company, alpha, fred, fetch, market_data, ProviderError
 
 # Deliberately small .env loader: no interpolation or shell execution.
@@ -78,10 +79,11 @@ def scheduler():
 @asynccontextmanager
 async def lifespan(app):
     init()
+    analysis.initialize()
     with db() as c: c.execute("UPDATE jobs SET status='failed',detail=? WHERE status='running'",(json.dumps({'errors':['Application restarted during refresh.']}),))
     thread=threading.Thread(target=scheduler,daemon=True);thread.start()
     yield
-    stop.set();executor.shutdown(wait=False)
+    stop.set();analysis.stop_research();executor.shutdown(wait=False)
 
 app=FastAPI(title='MarketDesk',version='0.1.0',lifespan=lifespan)
 
@@ -372,5 +374,41 @@ def usage():
 @app.get('/api/export')
 def export():
     with db() as c: return {t:[dict(r) for r in c.execute('SELECT * FROM '+t)] for t in ('watchlist','transactions','notes','screens','settings')}
+
+@app.get('/api/analysis-status')
+def analysis_status():
+    return {**analysis.ai_status(),'standard_version':'1.0.0','predictive_status':'unvalidated','engine_version':analysis.ENGINE_VERSION}
+
+@app.get('/api/company-lookup')
+def company_lookup(q:str=''):
+    if len(q)>100: raise HTTPException(422,'Use a company name or ticker under 100 characters.')
+    try: return analysis.lookup(q)
+    except analysis.AnalysisError as exc: raise HTTPException(502,str(exc)) from exc
+
+class CompanyAnalysis(Input):
+    symbol:str=Field(min_length=1,max_length=25)
+    focus:str=Field(default='',max_length=1500)
+    force:bool=False
+
+@app.post('/api/analysis')
+def create_analysis(body:CompanyAnalysis):
+    try: return analysis.start_report(body.symbol,body.focus.strip(),body.force)
+    except analysis.AnalysisError as exc: raise HTTPException(422,str(exc)) from exc
+
+@app.get('/api/analyses')
+def company_analyses():
+    return analysis.list_reports()
+
+@app.get('/api/analysis/{rid}')
+def company_analysis_report(rid:str):
+    try: return analysis.get_report(rid)
+    except analysis.AnalysisError as exc: raise HTTPException(404,str(exc)) from exc
+
+@app.get('/api/analysis/{rid}/export')
+def export_company_analysis(rid:str):
+    try:
+        result=analysis.get_report(rid)
+        return JSONResponse(result,headers={'Content-Disposition':f'attachment; filename="marketdesk-{result["symbol"]}-{rid[:8]}.json"'})
+    except analysis.AnalysisError as exc: raise HTTPException(404,str(exc)) from exc
 
 if Path('dist').exists(): app.mount('/',StaticFiles(directory='dist',html=True),name='frontend')
