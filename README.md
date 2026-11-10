@@ -19,7 +19,7 @@ For development, run `.venv/bin/python -m uvicorn server.main:app --host 127.0.0
 ## Use it
 
 - **Today:** type “Qualcomm”, another company name or a ticker, then press **Analyse company**. Choose a listing if there are multiple matches. An optional question can focus the research.
-- **Companies:** compare every workspace company in a sortable ratings table, then reopen saved analyses. The new AI opinion ratings are out of five, with cited reasoning for every component, a server-calculated long-term total, coverage counts, price snapshots and CSV export. Today highlights the top researched candidates. [Read the fixed rating rubric](docs/COMPANY_RATINGS.md). “All” covers the current workspace, initially 20 US equities, not every listed stock.
+- **Companies:** compare every workspace company in a sortable ratings table, then reopen saved analyses. The new AI opinion ratings are out of five, with cited reasoning for every component, a server-calculated long-term total, coverage counts, price snapshots and CSV export. Today highlights the top researched candidates. [Read the fixed rating rubric](docs/COMPANY_RATINGS.md). The market-wide table now discovers current US/UK exchange securities, screens eligible companies and queues the frozen top 100 for AI research; saved workspace ratings remain available below it.
 - **Detailed company reports:** reopen saved analyses. Each report contains business, financials, growth, valuation, long-term view, short-term timing, leadership/news, risks and monitoring questions. Findings distinguish reported information, calculations and AI interpretation, with links and evidence gaps. Separate tabs show price context and source details.
 - **Refresh research** creates a new report, preserving the original. Asking a follow-up also creates a separate sourced report. A matching completed report is reused for 24 hours unless explicitly refreshed. Runs remain available if you leave the page.
 - **Quant Lab:** retain the educational long/cash moving-average experiment with explicit costs and assumptions. This is separate from registered strategy TR-001 and does not establish predictive performance.
@@ -47,6 +47,7 @@ npm run build
 .venv/bin/python -m unittest discover -s tests -q
 python3 scripts/check_research_standard.py
 python3 scripts/check_company_ratings.py
+python3 scripts/check_public_screen.py
 ```
 
 Read the [research standard](docs/RESEARCH_STANDARD.md), [methods paper](docs/papers/MarketDesk_Research_Methods_v1.0.docx), and [company researcher implementation](docs/COMPANY_RESEARCH.md). The versioned standard and six strategy definitions remain unchanged. Registered strategies, calibrated forecast probabilities and automatic trading are not implemented by this update.
@@ -55,4 +56,4 @@ See [product brief](docs/PRODUCT_BRIEF.md) and [architecture](docs/ARCHITECTURE.
 
 ## US and UK market-wide expansion
 
-The [tested full-market data solution](docs/research/US_UK_FULL_MARKET_SOLUTION_2026-11-10.md) records official exchange-directory probes, a 24-ticker financial-field sample, current share/valuation routes and the proposed numerical-screen → top-100 AI workflow. This is a researched implementation specification, not a claim that the app already covers every issuer. Live raw responses and sample summaries are retained locally in `.marketdesk/research-probes/`. The existing methods and rating rubric remain unchanged.
+Version **0.2.0** implements exchange-directory discovery, public bulk US and per-company UK metrics, a fixed numerical screen, and a durable top-100 AI research queue. [Read the release methods and limitations](docs/MARKET_DISCOVERY_v0.2.0.md). The [source assessment](docs/research/US_UK_FULL_MARKET_SOLUTION_2026-11-10.md) records the earlier research. Listings with missing fundamentals or unresolved mappings remain visible and unranked. The existing methods and rating rubric remain unchanged.

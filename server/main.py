@@ -13,6 +13,7 @@ from .store import init, db, cached, cache, settings, now
 from .finance import portfolio, backtest
 from . import company_analysis as analysis
 from . import company_ratings as ratings
+from . import market_universe as universe
 from .providers import sec_company, alpha, fred, fetch, market_data, ProviderError
 
 # Deliberately small .env loader: no interpolation or shell execution.
@@ -82,12 +83,15 @@ async def lifespan(app):
     init()
     analysis.initialize()
     ratings.initialize()
+    universe.initialize()
+    universe.start_workers()
     with db() as c: c.execute("UPDATE jobs SET status='failed',detail=? WHERE status='running'",(json.dumps({'errors':['Application restarted during refresh.']}),))
     thread=threading.Thread(target=scheduler,daemon=True);thread.start()
     yield
-    stop.set();analysis.stop_research();executor.shutdown(wait=False)
+    stop.set();universe.stop_workers();analysis.stop_research();executor.shutdown(wait=False)
 
-app=FastAPI(title='MarketDesk',version='0.1.0',lifespan=lifespan)
+APP_VERSION=json.loads((Path(__file__).resolve().parents[1]/'package.json').read_text())['version']
+app=FastAPI(title='MarketDesk',version=APP_VERSION,lifespan=lifespan)
 
 @app.middleware('http')
 async def local_only(request:Request,call_next):
@@ -434,5 +438,45 @@ def rating_job(jid:str):
 @app.get('/api/comparison/export')
 def comparison_export():
     return Response(ratings.csv_export(),media_type='text/csv',headers={'Content-Disposition':'attachment; filename="marketdesk-company-comparison.csv"'})
+
+@app.get('/api/version')
+def app_version():
+    return {'version':APP_VERSION,'research_standard':'1.0.0','rating_rubric':ratings.VERSION,'discovery_model':universe.screen.POLICY['id']+' '+universe.screen.POLICY['version']}
+
+class MarketRunRequest(Input):
+    auto_ai:bool=True
+
+@app.get('/api/market-universe')
+def market_overview():
+    return universe.overview()
+
+@app.post('/api/market-runs')
+def create_market_run(body:MarketRunRequest):
+    return universe.create(body.auto_ai)
+
+@app.post('/api/market-runs/{rid}/{action}')
+def control_market_run(rid:str,action:Literal['pause','resume','retry-research','pause-research','resume-research']):
+    try:return universe.control(rid,action)
+    except analysis.AnalysisError as exc:raise HTTPException(422,str(exc)) from exc
+
+@app.get('/api/market-runs/{rid}/rows')
+def market_rows(rid:str,q:str='',country:Literal['','US','UK']='',sector:str='',view:Literal['all','scored','top100','pending','excluded','reviewed']='all',offset:int=0,limit:int=50):
+    if offset<0 or not 1<=limit<=200 or len(q)>100 or len(sector)>100:raise HTTPException(422,'Invalid table filters or page size.')
+    try:return universe.rows(rid,q,country,sector,view,offset,limit)
+    except analysis.AnalysisError as exc:raise HTTPException(404,str(exc)) from exc
+
+@app.get('/api/market-runs/{rid}/export')
+def export_market_run(rid:str):
+    try:return Response(universe.export_csv(rid),media_type='text/csv',headers={'Content-Disposition':f'attachment; filename="marketdesk-market-scan-{rid[:8]}.csv"'})
+    except analysis.AnalysisError as exc:raise HTTPException(404,str(exc)) from exc
+
+@app.post('/api/market-runs/{rid}/company/{listing_id}')
+def open_market_company(rid:str,listing_id:str):
+    with db() as c:row=c.execute('SELECT listing_json FROM market_observations WHERE run_id=? AND listing_id=?',(rid,listing_id)).fetchone()
+    if not row:raise HTTPException(404,'Listing not found in this scan.')
+    listing=json.loads(row['listing_json'])
+    if listing['classification']!='candidate':raise HTTPException(422,'Choose a mapped operating-company candidate.')
+    universe.ensure_company(listing)
+    return {'symbol':listing['symbol']}
 
 if Path('dist').exists(): app.mount('/',StaticFiles(directory='dist',html=True),name='frontend')
