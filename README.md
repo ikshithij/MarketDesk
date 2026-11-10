@@ -2,7 +2,7 @@
 
 **The personal financial intelligence terminal.** A local-first research workspace for macOS, built with React, TypeScript, FastAPI and SQLite.
 
-This is the first working release of the [product brief](docs/PRODUCT_BRIEF.md), not a claim that every capability in that brief is finished. Financial data is never fabricated to fill the interface. Before you configure providers, company identities are available and financial observations remain empty.
+This is the first working release of the [product brief](docs/PRODUCT_BRIEF.md), not a claim that every capability in that brief is finished. Financial data is never fabricated to fill the interface. Company prices and charts load automatically from Yahoo Finance without keys. Official financial statements require SEC contact configuration; other optional providers require their own credentials.
 
 ## Run on your Mac
 
@@ -22,13 +22,13 @@ MarketDesk opens at **http://127.0.0.1:8000**. The startup window keeps the loca
 
 ## Make it useful
 
-1. Open **Settings & data**, add your contact email for SEC fair access, and save.
-2. Search a company or select one from the briefing. **Refresh SEC** retrieves official financials and filing metadata in the background.
+1. Search a company or select one from the briefing. The latest available quote and charts load automatically without keys.
+2. Optional: open **Settings & data**, add your contact email for SEC fair access, and save. **Financials → Load official financials** retrieves official financials and filing metadata in the background.
 3. Star companies for your watchlist. Filter reported financials in **Discover**, compare companies and save useful screens.
 4. Add transactions to **Portfolio** and record your investment thesis in **Research**.
 5. Optional: copy `.env.example` to `.env`, add provider keys and restart. Prices, macro data and AI use separate provider entitlements. A ChatGPT subscription is not API access.
 
-**No credentials?** Notes, manual transactions, watchlists, saved screens, local search and exports still work. You will see explicit empty states for unavailable financial observations.
+**No credentials?** Latest quotes, one-year daily charts, latest-session five-minute charts, notes, manual transactions, watchlists, saved screens, local search and exports work. Official statement observations remain unavailable until SEC access is configured.
 
 ## What works
 
@@ -37,7 +37,7 @@ MarketDesk opens at **http://127.0.0.1:8000**. The startup window keeps the loca
 - 20 identity-only starter companies; SEC directory lookup can add other US-listed issuers on demand when SEC access is configured. Sector classification for new companies remains unclassified.
 - SEC annual and standalone quarterly XBRL financials, provenance, latest restatements, growth, margins and FCF. Filing links go to SEC originals.
 - Research briefing, watchlists, growth radar, saved screens and company comparison.
-- Optional Alpha Vantage adjusted daily data, line/candlestick charts by TradingView. The endpoint may require a paid provider plan. No unlicensed scraper fallback.
+- Automatic Yahoo Finance public quotes with original timestamps and delay labels, one-year daily history, latest-session five-minute bars, line/candlestick charts and 60-second polling while a company is viewed. This is an unofficial public feed for personal research, not a guaranteed real-time exchange service. The Alpha Vantage adapter remains available in source for future provider selection.
 - Optional FRED observations for Treasury yields, policy rates, inflation and unemployment.
 - Manual USD/GBP transactions with fees, weighted average cost, realised/unrealised P&L and explicitly dated user-supplied spot FX. Missing prices/FX prevent misleading partial totals.
 - Reproducible long/cash SMA backtest with prior-close signals, next adjusted-open execution, costs, slippage, equity curve, buy-and-hold comparison and trade history.
@@ -49,7 +49,7 @@ MarketDesk opens at **http://127.0.0.1:8000**. The startup window keeps the loca
 
 Personal data and provider caches live in `.marketdesk/marketdesk.db` (gitignored). Copy that file while the app is stopped for a complete backup, or use **Settings → Export personal workspace** for notes, transactions, watchlists, screens and preferences. JSON export does not include provider caches. There is no import UI yet.
 
-Secrets stay in `.env` or the server environment and are never returned to the browser. SEC receives your configured contact identity; Alpha Vantage and FRED receive their relevant requests; OpenAI receives a company question and cached public financial context only when you press the AI research button. Personal notes and portfolio data are not included in the AI payload. Fonts use the system stack: no external font request or analytics is required.
+Secrets stay in `.env` or the server environment and are never returned to the browser. SEC receives your configured contact identity; Yahoo Finance receives the viewed ticker and refresh requests; FRED receives its relevant requests; OpenAI receives a company question and cached public financial context only when you press the AI research button. Personal notes and portfolio data are not included in the AI payload. Fonts use the system stack: no external font request or analytics is required.
 
 Bind only to loopback. Host/origin checks reject unrelated websites and DNS rebinding attempts. This is a single-user local app with no remote authentication; do not expose it through a public tunnel. No brokerage execution or generated-code execution exists.
 
@@ -62,7 +62,7 @@ npm run build
 
 Tests cover reporting durations, restatements, missing values, growth calculations, cost basis/fees, missing FX, overselling, causality of backtest execution, cost impact, API validation, notebook FTS, watchlists, provider failures and local access boundaries. Tests use isolated temporary databases and test-only synthetic fixtures; fixtures are never served by the application.
 
-Live SEC, paid market-data and AI calls require configuration and have not been end-to-end verified with the user's credentials. See [verification](docs/VERIFICATION.md).
+Yahoo QCOM market-data retrieval has been verified live without credentials. SEC, FRED and AI still require configuration and have not been end-to-end verified with the user's credentials. See [verification](docs/VERIFICATION.md).
 
 ## Engineering decisions and remaining work
 

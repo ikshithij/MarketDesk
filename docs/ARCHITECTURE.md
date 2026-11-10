@@ -11,7 +11,7 @@ DuckDB/Parquet should be added when cross-sectional histories outgrow SQLite JSO
 ## Ownership
 
 - `server/store.py`: transactions, schema, caches and settings. Connections use WAL and a busy timeout. The default data directory can be replaced with `MARKETDESK_DATA_DIR`.
-- `server/providers.py`: SEC, Alpha Vantage and FRED boundaries. Fixed HTTPS endpoints, timeouts, explicit credentials and provenance. Failed refreshes retain the last successful cache.
+- `server/providers.py`: SEC, Yahoo Finance, optional Alpha Vantage and FRED boundaries. Fixed HTTPS endpoints, timeouts, explicit credentials and provenance. Failed refreshes retain the last successful cache.
 - `server/finance.py`: deterministic XBRL normalisation, ratios, weighted average portfolio accounting and a small fixed-rule backtester. No I/O or model dependency.
 - `server/main.py`: validated API, deterministic search intents, background orchestration, notebook/search and optional AI research.
 - `src/api.ts`: API transport and number formatting.
@@ -33,6 +33,6 @@ DuckDB/Parquet should be added when cross-sectional histories outgrow SQLite JSO
 
 Local host/origin checks, server-only secrets, no arbitrary provider URL, no dynamic SQL identifiers from requests, parameterised SQL, no arbitrary code execution, and no brokerage execution. Provider error messages do not expose credential-bearing URLs. Notebook FTS queries are quoted as phrases to avoid malformed operators. Inputs reject NaN/infinity and negative sizes.
 
-Data refresh is explicit by default; SEC watchlist scheduling is opt-in. Job status survives process restarts, and interrupted jobs are marked failed on startup. Current jobs are serialised at the application level; new refresh requests join the current job instead of launching unlimited work. This is designed for one local process, not multi-worker deployment.
+Market quotes load automatically on company open and poll every 60 seconds while visible, using a 45-second server cache. SEC data refresh is explicit by default; SEC watchlist scheduling is opt-in. Job status survives process restarts, and interrupted jobs are marked failed on startup. Current jobs are serialised at the application level; new refresh requests join the current job instead of launching unlimited work. This is designed for one local process, not multi-worker deployment.
 
 The OpenAI call has a bounded output token budget, uses cached public company context and logs token counts. Provider/model selection is currently environment-based and OpenAI-only. Actual provider billing remains authoritative; a dollar estimate is intentionally not hard-coded.

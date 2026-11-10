@@ -73,3 +73,79 @@ def fred():
             p=points[0];result.append({'name':name,'series':series,'value':float(p['value']),'as_of':p['date'],'unit':unit,'source':f'https://fred.stlouisfed.org/series/{series}'})
     cache('macro',{'items':result,'fetched_at':now(),'provider':'FRED'})
     return result
+
+_market_lock = threading.Lock()
+
+def normalize_yahoo(payload, symbol, intraday_payload=None):
+    """Validate Yahoo's public chart response without inventing missing observations."""
+    import math
+    from datetime import datetime, timezone
+    from zoneinfo import ZoneInfo
+    def number(value, positive=False):
+        if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value): return None
+        return value if (not positive or value>0) else None
+    try:
+        result=payload['chart']['result'][0]
+        meta=result['meta']
+        price=number(meta.get('regularMarketPrice'),True)
+        timestamp=number(meta.get('regularMarketTime'),True)
+        if price is None or timestamp is None: raise ValueError('Missing quote')
+        if meta.get('symbol','').upper()!=symbol.upper(): raise ValueError('Symbol mismatch')
+        currency=meta.get('currency')
+        if not isinstance(currency,str) or len(currency)!=3: raise ValueError('Missing currency')
+        zone=ZoneInfo(meta.get('exchangeTimezoneName','UTC'))
+        def parse_bars(result, daily=True):
+            timestamps=result.get('timestamp',[])
+            quote=result.get('indicators',{}).get('quote',[{}])[0]
+            adjusted=result.get('indicators',{}).get('adjclose',[{}])[0].get('adjclose',[])
+            parsed={}
+            for i,ts in enumerate(timestamps):
+                values={key:number(quote.get(key,[])[i],True) if i<len(quote.get(key,[])) else None for key in ('open','high','low','close')}
+                if number(ts,True) is None or any(v is None for v in values.values()):continue
+                if not values['low']<=min(values['open'],values['close'])<=max(values['open'],values['close'])<=values['high']:continue
+                key=datetime.fromtimestamp(ts,zone).date().isoformat() if daily else int(ts)
+                volume=number(quote.get('volume',[])[i]) if i<len(quote.get('volume',[])) else None
+                parsed[key]={'time':key,**values,'volume':volume if volume is not None and volume>=0 else None,'adjusted_close':number(adjusted[i],True) if i<len(adjusted) else None}
+            return [parsed[k] for k in sorted(parsed)]
+        bars=parse_bars(result)
+        intraday=[]
+        if intraday_payload:
+            intraday_result=intraday_payload.get('chart',{}).get('result')
+            if intraday_result: intraday=parse_bars(intraday_result[0],False)
+        # chartPreviousClose in a 1y chart is the start-of-range close, NOT yesterday.
+        # Prefer the provider's day change, otherwise use completed daily closes.
+        change=number(meta.get('regularMarketChangePercent'))
+        previous=number(meta.get('previousClose'),True)
+        quote_day=datetime.fromtimestamp(timestamp,zone).date().isoformat()
+        if previous is None:
+            prior=[b for b in bars if b['time']<quote_day]
+            previous=prior[-1]['close'] if prior else None
+        if change is None and previous:change=(price/previous-1)*100
+        regular=meta.get('currentTradingPeriod',{}).get('regular',{})
+        current=time.time()
+        status='Regular session' if regular.get('start',0)<=current<regular.get('end',0) else 'Outside regular session'
+        delay=number(meta.get('exchangeDataDelayedBy'))
+        quote={'price':price,'change_pct':change,'previous_close':previous,'as_of':datetime.fromtimestamp(timestamp,timezone.utc).isoformat(),'currency':currency.upper(),'delay':f'{delay:g} min delayed' if delay is not None and delay>0 else 'Delay not specified by provider','market_status':status,'exchange':meta.get('fullExchangeName') or meta.get('exchangeName'),'provider':'Yahoo Finance','source':f'https://finance.yahoo.com/quote/{symbol}/','fetched_at':now(),'day_high':number(meta.get('regularMarketDayHigh'),True),'day_low':number(meta.get('regularMarketDayLow'),True),'volume':number(meta.get('regularMarketVolume')),'year_high':number(meta.get('fiftyTwoWeekHigh'),True),'year_low':number(meta.get('fiftyTwoWeekLow'),True)}
+        return {'quote':quote,'bars':bars,'intraday':intraday,'intraday_interval':'5 minutes','notice':'Public Yahoo Finance feed for personal research. Refreshes every 60 seconds while viewed; not a guaranteed real-time exchange feed.'}
+    except (KeyError,TypeError,ValueError,IndexError) as exc:
+        raise ProviderError('Yahoo Finance returned an invalid or unavailable quote. Previous data is retained.') from exc
+
+def market_data(symbol, force=False):
+    from datetime import datetime, timezone
+    from urllib.parse import quote as urlquote
+    with _market_lock:
+        previous=cached(f'price:{symbol}')
+        if previous and not force and (datetime.now(timezone.utc)-datetime.fromisoformat(previous['fetched_at'])).total_seconds()<45:
+            return previous['data']
+        try:
+            endpoint=f'https://query1.finance.yahoo.com/v8/finance/chart/{urlquote(symbol,safe="")}'
+            daily=fetch(endpoint,{'range':'1y','interval':'1d','events':'div,splits'})
+            intraday=None
+            try: intraday=fetch(endpoint,{'range':'1d','interval':'5m','includePrePost':'false'})
+            except ProviderError: pass  # Quote/daily history still useful if intraday is unavailable.
+            data=normalize_yahoo(daily,symbol,intraday)
+            cache(f'price:{symbol}',data)
+            return data
+        except ProviderError as exc:
+            if previous:return {**previous['data'],'stale':True,'warning':str(exc)}
+            raise

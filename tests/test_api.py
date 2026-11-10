@@ -37,6 +37,12 @@ class API(unittest.TestCase):
         self.assertEqual(p['positions'][0]['cost'],302)
         self.assertIsNone(p['value'])
         self.client.delete('/api/transactions/'+str(p['transactions'][0]['id']))
+    def test_price_access_does_not_require_sec(self):
+        with patch('server.main.market_data',return_value={'quote':{'price':123,'provider':'Yahoo Finance'}}) as market, patch('server.main.sec_company') as sec:
+            response=self.client.get('/api/market/QCOM')
+            self.assertEqual(response.status_code,200)
+            self.assertEqual(response.json()['quote']['price'],123)
+            market.assert_called_once_with('QCOM');sec.assert_not_called()
     def test_missing_data_excluded(self):
         r=self.client.post('/api/screen',json={'growth_min':20}).json()
         self.assertEqual(r['matches'],[]);self.assertEqual(r['missing'],20)

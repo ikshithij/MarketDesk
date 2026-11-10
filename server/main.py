@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ConfigDict
 from .store import init, db, cached, cache, settings, now
 from .finance import portfolio, backtest
-from .providers import sec_company, alpha, fred, fetch, ProviderError
+from .providers import sec_company, alpha, fred, fetch, market_data, ProviderError
 
 # Deliberately small .env loader: no interpolation or shell execution.
 if Path('.env').exists():
@@ -41,11 +41,15 @@ def run_job(job_id, symbols, include_prices, macro):
             try: fred();completed+=1
             except ProviderError as e: errors.append(str(e))
         for symbol in symbols:
-            try: sec_company(company(symbol));completed+=1
-            except (ProviderError,HTTPException) as e: errors.append(f'{symbol}: {str(e)}')
             if include_prices:
-                try: alpha(symbol);completed+=1
+                try:
+                    result=market_data(symbol,True)
+                    if result.get('stale'): errors.append(f'{symbol}: {result["warning"]}')
+                    else: completed+=1
                 except ProviderError as e: errors.append(f'{symbol}: {str(e)}')
+            else:
+                try: sec_company(company(symbol));completed+=1
+                except (ProviderError,HTTPException) as e: errors.append(f'{symbol}: {str(e)}')
         detail=json.dumps({'completed':completed,'errors':errors})
         with db() as c: c.execute('UPDATE jobs SET status=?,detail=?,updated_at=? WHERE id=?',('partial' if errors and completed else 'failed' if errors else 'complete',detail,now(),job_id))
     except Exception:
@@ -103,7 +107,7 @@ class Config(Input):
 
 @app.get('/api/settings')
 def get_settings():
-    return {**settings(),'providers':{'sec':bool(settings().get('sec_contact') or os.getenv('SEC_CONTACT')),'prices':bool(os.getenv('ALPHA_VANTAGE_API_KEY')),'fred':bool(os.getenv('FRED_API_KEY')),'ai':bool(os.getenv('OPENAI_API_KEY'))},'model':os.getenv('OPENAI_MODEL','gpt-4.1-mini')}
+    return {**settings(),'providers':{'sec':bool(settings().get('sec_contact') or os.getenv('SEC_CONTACT')),'prices':True,'fred':bool(os.getenv('FRED_API_KEY')),'ai':bool(os.getenv('OPENAI_API_KEY'))},'model':os.getenv('OPENAI_MODEL','gpt-4.1-mini')}
 
 @app.put('/api/settings')
 def put_settings(body:Config):
@@ -132,6 +136,12 @@ def get_company(symbol:str):
     r=company(symbol);s=cached('sec:'+symbol.upper());p=cached('price:'+symbol.upper())
     with db() as c: watched=c.execute('SELECT 1 FROM watchlist WHERE symbol=?',(symbol.upper(),)).fetchone() is not None
     return {**r,'financials':s['data'] if s else None,'market':p['data'] if p else None,'watched':watched}
+
+@app.get('/api/market/{symbol}')
+def get_market(symbol:str):
+    company(symbol)
+    try: return market_data(symbol.upper())
+    except ProviderError as exc: raise HTTPException(502,str(exc)) from exc
 
 @app.get('/api/briefing')
 def briefing():

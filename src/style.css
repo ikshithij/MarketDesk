@@ -2,3 +2,5 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 
 .price-date{display:block;font-size:8px;color:#7c959d;margin-top:7px}
+
+.quote-details{display:flex;gap:30px;margin:10px 25px 20px;padding-top:18px;border-top:1px solid var(--line);flex-wrap:wrap}.quote-details>div{flex:1;min-width:120px}.quote-details span{display:block;color:#829aa2;font-size:10px;margin-bottom:8px}.quote-details strong{font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}

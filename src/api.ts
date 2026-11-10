@@ -8,3 +8,5 @@ export const money=(n:number|null|undefined,currency='USD')=>n==null?'—':new I
 export const percent=(n:number|null|undefined)=>n==null?'—':`${n>0?'+':''}${n.toFixed(1)}%`;
 export const date=(value:string|undefined)=>value?new Date(value).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Not available';
 export type Company={symbol:string;name:string;cik:string;sector:string;metrics:Record<string,number|string|null>;quote:any;fetched_at:string|null;reasons?:string[]};
+
+export const timestamp=(value:string|undefined)=>value?new Date(value).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}):'Not available';
