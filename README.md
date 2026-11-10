@@ -52,3 +52,7 @@ python3 scripts/check_company_ratings.py
 Read the [research standard](docs/RESEARCH_STANDARD.md), [methods paper](docs/papers/MarketDesk_Research_Methods_v1.0.docx), and [company researcher implementation](docs/COMPANY_RESEARCH.md). The versioned standard and six strategy definitions remain unchanged. Registered strategies, calibrated forecast probabilities and automatic trading are not implemented by this update.
 
 See [product brief](docs/PRODUCT_BRIEF.md) and [architecture](docs/ARCHITECTURE.md) for earlier system scope. Earlier delivery documents describe the previous multi-panel interface; the company researcher document records this release's actual behavior.
+
+## US and UK market-wide expansion
+
+The [tested full-market data solution](docs/research/US_UK_FULL_MARKET_SOLUTION_2026-11-10.md) records official exchange-directory probes, a 24-ticker financial-field sample, current share/valuation routes and the proposed numerical-screen → top-100 AI workflow. This is a researched implementation specification, not a claim that the app already covers every issuer. Live raw responses and sample summaries are retained locally in `.marketdesk/research-probes/`. The existing methods and rating rubric remain unchanged.
