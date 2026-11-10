@@ -1,0 +1,153 @@
+{
+  "registry_version": "1.0.0",
+  "standard_version": "1.0.0",
+  "parameter_status": "preregistered_initial_defaults_not_empirically_optimal",
+  "strategies": [
+    {
+      "id": "LT-QV-001",
+      "version": "1.0.0",
+      "status": "registered_not_implemented",
+      "name": "Quality at a reasonable valuation",
+      "quality": {
+        "aggregation": "arithmetic_mean_of_all_three_country_sector_percentiles",
+        "metrics": [
+          "gross_profit/average_annual_assets",
+          "operating_cash_flow/average_annual_assets",
+          "-(net_income-operating_cash_flow)/average_annual_assets"
+        ]
+      },
+      "value": {
+        "aggregation": "arithmetic_mean_of_both_country_sector_percentiles",
+        "metrics": [
+          "(operating_cash_flow-ppe_cash_capex)/market_cap",
+          "operating_income/enterprise_value"
+        ]
+      },
+      "enterprise_value": "market_cap+interest_bearing_debt+preferred_capital+noncontrolling_interests-cash_and_cash_equivalents",
+      "score": "0.5*quality+0.5*value",
+      "all_components_required": true,
+      "entry_percentile_min": 0.8,
+      "retention_percentile_min": 0.6,
+      "rebalance": "monthly",
+      "primary_forward_horizon_sessions": 252,
+      "benchmarks": [
+        "predeclared_country_broad_equity",
+        "equal_weight_eligible_universe"
+      ],
+      "ai_dossier_can_change_numeric_backtest": false,
+      "absolute_filters": [
+        "annual_net_income>0",
+        "annual_operating_cash_flow>0"
+      ],
+      "rank_group": [
+        "country",
+        "sector"
+      ],
+      "reverse_valuation": {
+        "cash_flow": "FCFF",
+        "explicit_years": 5,
+        "cost_of_capital_cases": [
+          0.08,
+          0.1,
+          0.12
+        ],
+        "terminal_growth_cases": [
+          0,
+          0.02
+        ],
+        "kind": "sensitivity_not_probability"
+      }
+    },
+    {
+      "id": "EQ-MOM-001",
+      "version": "1.0.0",
+      "status": "registered_not_implemented",
+      "name": "Intermediate momentum",
+      "signal": "total_return_index[t-21]/total_return_index[t-252]-1",
+      "entry_percentile_min": 0.8,
+      "retention_percentile_min": 0.6,
+      "rebalance": "monthly",
+      "primary_outcome": "complete_evaluation_period_net_portfolio_excess_return",
+      "same_position_and_sector_caps_as": "LT-QV-001",
+      "combining_with_quality_value_requires_new_id": true,
+      "rank_group": [
+        "country"
+      ]
+    },
+    {
+      "id": "TR-001",
+      "version": "1.0.0",
+      "status": "registered_not_implemented",
+      "name": "Long only trend overlay",
+      "instrument": "eligible_broad_equity_ucits_etf_frozen_before_run",
+      "signal": "latest_completed_close>SMA_200_sessions",
+      "when_true": "long_nominated_etf",
+      "when_false": "cash",
+      "evaluation_frequency": "daily_after_close",
+      "execution": "standard_next_full_regular_open",
+      "benchmark": "buy_and_hold_same_etf",
+      "cash_return": "verified_series_with_zero_return_sensitivity",
+      "cash_if_unverified": "zero_with_explicit_assumption_label",
+      "duplicates_fund_expense_deduction": false,
+      "single_instrument_overlay_exempt_from_stock_slot_caps": true
+    },
+    {
+      "id": "ST-EARN-001",
+      "version": "1.0.0",
+      "status": "conditional_registered_not_implemented",
+      "name": "Seasonal earnings drift",
+      "signal": "(EPS[q]-EPS[q-4])/sample_std(previous_8_seasonal_EPS_changes)",
+      "minimum_comparable_quarters": 13,
+      "current_change_in_denominator": false,
+      "signal_min": 1,
+      "revenue_yoy_growth_min_exclusive": 0,
+      "reported_GAAP_and_adjusted_EPS_mixing": false,
+      "analyst_consensus_surprise_claim": false,
+      "holding_sessions": 20,
+      "entry": "standard_next_full_regular_open",
+      "exact_event_publication_and_first_seen_required": true,
+      "benchmark": "predeclared_country_broad_equity",
+      "duplicate_issuer_overlapping_positions": false
+    },
+    {
+      "id": "ST-REV-001",
+      "version": "1.0.0",
+      "status": "exploratory_registered_not_implemented",
+      "name": "Short term reversal within a trend",
+      "signal": "stock_5_session_total_return-country_benchmark_5_session_total_return",
+      "entry_percentile_max": 0.05,
+      "must_be_above_SMA_sessions": 200,
+      "holding_sessions": 5,
+      "entry": "standard_next_full_regular_open",
+      "benchmark": "predeclared_country_broad_equity",
+      "retrospective_AI_news_exclusions": false,
+      "news_filter_requires_separate_id": true,
+      "rank_group": [
+        "country"
+      ]
+    },
+    {
+      "id": "ML-001",
+      "version": "1.0.0",
+      "status": "deferred_challenger_not_implemented",
+      "name": "Controlled nonlinear challenger",
+      "models": [
+        "regularized_linear_baseline",
+        "one_tree_based_challenger"
+      ],
+      "numeric_features_max": 30,
+      "configurations_per_family_max": 20,
+      "must_share_baseline_data_targets_splits_costs": true,
+      "production_before_baseline_validation": false
+    }
+  ],
+  "excluded_initial_families": [
+    "pairs_long_short",
+    "market_making",
+    "latency_arbitrage",
+    "options_carry",
+    "leveraged_futures",
+    "unconstrained_generated_code",
+    "unvalidated_foundation_price_forecasts"
+  ]
+}

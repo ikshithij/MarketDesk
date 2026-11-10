@@ -1,5 +1,7 @@
 # MarketDesk: evidence, experiments and a simple morning decision
 
+Current methods authority: `docs/RESEARCH_STANDARD.md`, `research/standard_v1.json` and `research/strategies_v1.json`. The version 1 paper explains the detailed protocols; this earlier direction document is retained as background.
+
 Direction captured 10 November 2026 from the user's revised brief. This supersedes dashboard breadth as the product priority; it does not claim the proposed engine is already implemented.
 
 ## User constraints

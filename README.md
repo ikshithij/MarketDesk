@@ -64,6 +64,10 @@ Tests cover reporting durations, restatements, missing values, growth calculatio
 
 Yahoo QCOM market-data retrieval has been verified live without credentials. SEC, FRED and AI still require configuration and have not been end-to-end verified with the user's credentials. See [verification](docs/VERIFICATION.md).
 
+## Persistent research methodology
+
+Read the [research standard](docs/RESEARCH_STANDARD.md) and the [version 1 paper](docs/papers/MarketDesk_Research_Methods_v1.0.docx). Future research and implementation follow the versioned policy and strategy registry in `research/`. Run `python3 scripts/check_research_standard.py` to check continuity. The registered strategy protocols remain planned and unvalidated; they are not the current educational SMA backtest.
+
 ## Engineering decisions and remaining work
 
 Read [architecture](docs/ARCHITECTURE.md), [research and dependency decisions](docs/RESEARCH.md), [provider matrix](docs/DATA_PROVIDERS.md), and [delivery status](docs/DELIVERY_STATUS.md).

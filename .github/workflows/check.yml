@@ -12,6 +12,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: python scripts/check_research_standard.py
       - run: npm ci
       - run: npm run build
       - run: python -m pip install -r server/requirements.lock.txt

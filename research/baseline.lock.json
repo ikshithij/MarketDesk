@@ -1,0 +1,15 @@
+{
+  "standard_version": "1.0.0",
+  "recorded_release_date": "2026-11-10",
+  "purpose": "Detect unrecorded baseline edits not a security signature",
+  "sha256": {
+    "AGENTS.md": "8b1d5e9f7c8cd07c21b4c64f16257c4259fbfe75412f6628e5a4c5f19e16004f",
+    "docs/RESEARCH_STANDARD.md": "a6346719a7a41a8ce77463e79342ee1921e058082f781a016ac3dc1488b4537d",
+    "docs/papers/MarketDesk_Research_Methods_v1.0.md": "ce310ac9feb1717a8a33a04979dff18e1d38fad37db5a567821bd879f39b7b9a",
+    "docs/papers/MarketDesk_Research_Methods_v1.0.docx": "5644b70a674caa43aed7b62138014e562f11e27b469d3197dafa42be0c3466a1",
+    "research/standard_v1.json": "02bba7029a4917a450f45a92c46d988ac4b3897eb850e71bf3546d281ea91d0f",
+    "research/strategies_v1.json": "6fd51e476f25fd21dfdc773b9267d58f1c56b88732f78a49e77b449177364674",
+    "research/CHANGELOG.md": "dc652fbba51285c492d1e537f6bd68c737fd6c31e94c3e2ea8a4938dc28c2726",
+    "scripts/check_research_standard.py": "78d9a51936e195ca4fe78e30b1bf6472c9bf32dba97ad8a587680fb04a922413"
+  }
+}

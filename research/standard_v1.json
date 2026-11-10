@@ -1,0 +1,148 @@
+{
+  "standard_version": "1.0.0",
+  "effective_date": "2026-11-10",
+  "status": "adopted_research_protocol_not_validated_trading_policy",
+  "paper": "docs/papers/MarketDesk_Research_Methods_v1.0.md",
+  "strategy_registry": "research/strategies_v1.json",
+  "user_constraints": {
+    "new_financial_data_accounts": false,
+    "existing_authorized_ai_access_allowed": true,
+    "online_research_required": true,
+    "timezone": "Europe/London",
+    "broker": "Trading 212",
+    "regular_hours_only": true,
+    "long_only": true,
+    "leverage": false,
+    "automatic_order_execution": false,
+    "account_type": "unconfirmed_invest_or_stocks_isa"
+  },
+  "interface": [
+    "Today",
+    "Companies",
+    "Quant Lab"
+  ],
+  "universe": {
+    "countries": [
+      "US",
+      "UK"
+    ],
+    "initial_ingestion_target_min": 150,
+    "initial_ingestion_target_max": 300,
+    "market_cap_min_gbp": 1000000000,
+    "median_traded_value_min_gbp": 5000000,
+    "traded_value_lookback_sessions": 60,
+    "broker_listing_verification_required": true,
+    "historical_membership_required_for_unbiased_claims": true,
+    "initial_accounting_exclusions": [
+      "banks",
+      "insurers",
+      "property_investment_companies"
+    ],
+    "comparison_groups": [
+      "country",
+      "sector"
+    ],
+    "minimum_comparison_group_size": 20,
+    "missing_value_policy": "ineligible_never_zero_fill",
+    "tie_break": "stable_instrument_id"
+  },
+  "data": {
+    "annual_fiscal_end_max_age_days": 450,
+    "shares_outstanding_max_age_days": 150,
+    "current_restatements_in_historical_features": false,
+    "required_timestamps": [
+      "published_at",
+      "first_seen_at",
+      "ingested_at"
+    ],
+    "feature_prices": "documented_total_return",
+    "execution_prices": "raw_with_separate_corporate_action_ledger",
+    "raw_snapshot_hashes_required": true,
+    "unknown_timestamp_policy": "exploratory_only"
+  },
+  "execution": {
+    "readiness_delay_minutes": 30,
+    "readiness_base": "max(published_at,first_seen_at)",
+    "entry": "next_full_regular_session_open_strictly_after_readiness",
+    "historical_daily_open_is": "simulation_assumption_not_verified_broker_fill",
+    "spread_plus_slippage_bps_per_side": 10,
+    "stress_bps_per_side": [
+      25,
+      50
+    ],
+    "two_times_friction_promotion_scenario_bps_per_side": 20,
+    "maximum_daily_traded_value_participation": 0.05,
+    "fx_fee_per_conversion": 0.0015,
+    "fx_fee_review_date": "2026-11-10",
+    "fx_fee_only_when_conversion_occurs": true,
+    "uk_sdrt_eligible_purchases": 0.005,
+    "instrument_tax_exemptions_required": true,
+    "historical_cost_schedules_or_explicit_current_schedule_sensitivity": true,
+    "outcome_currency": "GBP"
+  },
+  "research_portfolio": {
+    "hypothetical_only": true,
+    "target_slots": 20,
+    "maximum_position_at_rebalance_or_entry": 0.05,
+    "maximum_sector_at_rebalance_or_entry": 0.25,
+    "unfilled_slots": "cash",
+    "duplicate_issuer_positions": false,
+    "unregistered_stop_loss_or_profit_target": false,
+    "automatic_averaging_down": false
+  },
+  "validation": {
+    "initial_development_years": 5,
+    "outer_test_years": 1,
+    "outer_design": "expanding_chronological_nonoverlapping_test_blocks",
+    "inner_selection_and_calibration": "separate_chronological_periods",
+    "purge_crossing_labels": true,
+    "embargo_minimum": "strategy_label_horizon",
+    "final_holdout_uses_per_frozen_family": 1,
+    "all_trials_including_failures_recorded": true,
+    "new_experiments_per_day_max": 10,
+    "challenger_configurations_per_family_max": 20,
+    "challenger_numeric_features_max": 30,
+    "numeric_alpha_gate": {
+      "mean_net_benchmark_relative_return": "positive",
+      "one_sided_block_bootstrap_confidence": 0.95,
+      "lower_bound_net_excess": "greater_than_zero",
+      "max_share_of_sum_positive_annual_excess_from_one_test_year": 0.5,
+      "must_survive_two_times_execution_friction": true,
+      "data_and_coverage_gates_required": true,
+      "block_length": "preregister_per_family_at_least_outcome_horizon_for_overlapping_labels",
+      "bootstrap_resamples": 10000,
+      "bootstrap_seed": 212,
+      "familywise_alpha": 0.05,
+      "familywise_correction": "Bonferroni_across_all_families_submitted_to_same_final_holdout"
+    },
+    "probability_publication_gate": {
+      "prospective_frozen_predictions_required": true,
+      "separate_probability_calibration_protocol": true,
+      "completed_nonoverlapping_or_defensibly_independent_clusters_min": 200,
+      "brier_improvement_vs_base_rate_lower_95_percent_bound": "greater_than_zero",
+      "sparse_or_dependent_sample_policy": "suppress_numeric_probability",
+      "minimum_sample_threshold_is_not_precision_guarantee": true
+    },
+    "operational_paper_period_sessions": 90,
+    "operational_paper_period_is_not_alpha_proof": true,
+    "review_frequency": "quarterly_with_immediate_data_integrity_suspension"
+  },
+  "report": {
+    "long_term_company_scenario_years": [
+      3,
+      5
+    ],
+    "primary_long_term_measured_horizon_sessions": 252,
+    "morning_local_time": "07:30",
+    "us_update_minutes_before_regular_open": 30,
+    "schedule_status": "specified_not_scheduled",
+    "max_long_term_research_items": 3,
+    "max_short_term_research_items": 3,
+    "cross_strategy_rank": "none_rank_within_family_only",
+    "evidence_quality_is_price_probability": false,
+    "current_predictive_status": "unvalidated",
+    "no_opportunity_is_valid_output": true,
+    "prior_predictions_immutable": true,
+    "human_overrides_scored_separately": true
+  }
+}
