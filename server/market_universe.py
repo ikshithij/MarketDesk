@@ -25,6 +25,7 @@ def initialize():
         CREATE TABLE IF NOT EXISTS market_observations(run_id TEXT,listing_id TEXT,country TEXT,symbol TEXT,name TEXT,sector TEXT,status TEXT,listing_json TEXT,features_json TEXT,reasons_json TEXT,warnings_json TEXT,sources_json TEXT,score REAL,peer_count INTEGER,rank INTEGER,shortlisted INTEGER,checked_at TEXT,PRIMARY KEY(run_id,listing_id));
         CREATE INDEX IF NOT EXISTS market_observation_scan ON market_observations(run_id,country,status);
         CREATE INDEX IF NOT EXISTS market_observation_rank ON market_observations(run_id,score);
+        CREATE TABLE IF NOT EXISTS paper_baskets(run_id TEXT PRIMARY KEY,started_at TEXT NOT NULL,cohort_hash TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS market_ai_queue(run_id TEXT,listing_id TEXT,position INTEGER,status TEXT,report_id TEXT,rating_job_id TEXT,attempts INTEGER,reason TEXT,updated_at TEXT,PRIMARY KEY(run_id,listing_id));
         ''')
         c.execute("UPDATE market_runs SET status='queued',phase='Resuming saved collection',updated_at=? WHERE status='running'",(store.now(),))

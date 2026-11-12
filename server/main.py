@@ -13,7 +13,7 @@ from .store import init, db, cached, cache, settings, now
 from .finance import portfolio, backtest
 from . import company_analysis as analysis
 from . import company_ratings as ratings
-from . import market_universe as universe
+from . import market_universe as universe, paper_tracker
 from .providers import sec_company, alpha, fred, fetch, market_data, ProviderError
 
 # Deliberately small .env loader: no interpolation or shell execution.
@@ -458,6 +458,25 @@ def create_market_run(body:MarketRunRequest):
 def control_market_run(rid:str,action:Literal['pause','resume','retry-research','pause-research','resume-research']):
     try:return universe.control(rid,action)
     except analysis.AnalysisError as exc:raise HTTPException(422,str(exc)) from exc
+
+@app.get('/api/market-runs/{rid}/paper')
+def get_paper_basket(rid: str):
+    return paper_tracker.read(rid)
+
+
+@app.post('/api/market-runs/{rid}/paper')
+def start_paper_basket(rid: str):
+    try:
+        paper_tracker.start(rid)
+    except analysis.AnalysisError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return paper_tracker.read(rid)
+
+
+@app.post('/api/market-runs/{rid}/paper/refresh')
+def refresh_paper_basket(rid: str):
+    return paper_tracker.read(rid, refresh=True)
+
 
 @app.get('/api/market-runs/{rid}/rows')
 def market_rows(rid:str,q:str='',country:Literal['','US','UK']='',sector:str='',view:Literal['all','scored','top100','pending','excluded','reviewed']='all',offset:int=0,limit:int=50):
